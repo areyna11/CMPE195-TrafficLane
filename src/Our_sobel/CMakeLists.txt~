@@ -1,0 +1,11 @@
+cmake_minimum_required (VERSION 2.8)
+
+project(lane)
+
+find_package(OpenCV REQUIRED)
+
+include_directories(${OpenCV_Include_DIRS})
+
+add_executable(cv_lane our_sobel.cpp)
+
+$target_link_libraries(cv_lane ${OpenCV_LIBS})

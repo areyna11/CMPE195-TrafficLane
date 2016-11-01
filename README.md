@@ -43,4 +43,16 @@ Run the command sudo apt-get libboost-all-dev
 
 Download and run the script @ https://gist.github.com/jetsonhacks/acf63b993b44e1fb9528
 
+#Runniing the test to caffe, using the MNIST sample
+Prerequisites:
+Make sure that the previous jetson update and caffe install guides were followed
 
+Guide:
+1. Go to the directory where your caffe was downloaded and installed.
+2. run the following commands in the directory, in order to
+	a. to download the resources of MNIST test "./data/mnist/get_mnist.sh"
+	b. to create the resources required of the MNIST test "./examples/mnist/create_mnist.sh"3.
+3. Run the following command, while still in the caffe root directory, in order to begin training using lenet_solver_prototxt file. This will create a caffe model file, containing trained data ran over 10000 iterarions. The training takes about 10-15 mins
+	a. "./examples/mnist/train_lenet.sh"
+Run the following command to test the data model generated from the previous command. This will test the model with data from the MNIST to see the accuracy of the numeral reconigtion.
+	a. "/build/tools/caffe test -model examples/mnist/lenet_train_test.prototxt  -weights examples/mnist/lenet_iter_10000.caffemodel  -gpu 0 -iterations 100"

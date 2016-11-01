@@ -35,4 +35,13 @@ The default login credentials are
 usr: ubuntu
 pwd: ubuntu
 Once the proper information has been entered, click next and a terminal window will pop up. This will ssh into the target and install all the software, such as OpenCV, Cuda libraries and VisionWorks.
+#Caffe installation
+Prerequisites:
+Have the Jetson TK1 flashed to the most up-to-date os (r21.2) and the software installed by Jetpack
+Run the command sudo apt-get libboost-all-dev
+
+
+Download and run the script @ https://gist.github.com/jetsonhacks/acf63b993b44e1fb9528
+
+#Runniing the test to caffe, using the MNIST sample
 

@@ -3,18 +3,18 @@
 
 int main()
 {
-	cv::Mat img = cv::imread("lena.jpg");
+	
 	
 	cv::Mat dst;
 	cv::Sobel(img,dst,CV_32F,1,1);
-	cv::VideoCapture input(0);
+	cv::VideoCapture input("vid_trim.mp4");
 	
 	cv::VideoWriter output(
-		"cars.avi",
+		"lane.avi",
 		CV_FOURCC('X','V','I','D'),
 		30,
 		cv::Size(input.get(CV_CAP_PROP_FRAME_WIDTH),
-				input.get(CV_CAP_PROP_FRAME_HEIGHT))
+			input.get(CV_CAP_PROP_FRAME_HEIGHT))
 		);
 		
 	
