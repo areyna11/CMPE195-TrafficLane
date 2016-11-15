@@ -1,0 +1,55 @@
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
+#include <stdio.h>
+#include <iostream>
+#include "PNG.h"
+__global__ void copy(const unsigned char* in, unsigned char* out)
+{
+int x = blockIdx.x;
+int y = threadIdx.x;
+int width = blockDim.x;
+int index = (x + y * width) * 4;
+//copy each color channel
+out[index] = in[index];
+out[index + 1] = in[index + 1];
+out[index + 2] = in[index + 2];
+out[index + 3] = in[index + 3];
+}
+int main(int arg, char* args[])
+{
+PNG inPng("sjsu.png");
+PNG outPng;
+outPng.Create(inPng.w, inPng.h);
+//store width and height so we can use them for our output image later
+const unsigned int w = inPng.w;
+const unsigned int h = inPng.h;
+//4 because there are 4 color channels R, G, B, and A
+int size = w * h * 4;
+unsigned char *in = 0;
+unsigned char *out = 0;
+// Allocate GPU buffers for the images
+cudaMalloc((void**)&in, size * sizeof(unsigned char));
+cudaMalloc((void**)&out, size * sizeof(unsigned char));
+// Copy image data from host memory to GPU buffers.
+cudaMemcpy(in, &inPng.data[0], size * sizeof(unsigned char), cudaMemcpyHostToDevice);
+//free the input image because we do not need it anymore
+inPng.Free();
+// Launch a kernel on the GPU with one thread for each element.
+copy<<<w, h>>>(in, out);
+//temporary array to store the result from opencl
+auto tmp = new unsigned char[w * h * 4];
+// Copy output vector from GPU buffer to host memory.
+cudaStatus = cudaMemcpy(tmp, out, size * sizeof(unsigned char), cudaMemcpyDeviceToHost);
+cudaFree(in);
+cudaFree(out);
+//copy the data from the temp array to the png
+std::copy(&tmp[0], &tmp[w * h * 4], std::back_inserter(outPng.data));
+//write the image to file
+outPng.Save("sjsu-cuda.png");
+//free the iamge's resources since we are done with it
+outPng.Free();
+//free the temp array
+delete[] tmp;
+
+return 0;
+}
