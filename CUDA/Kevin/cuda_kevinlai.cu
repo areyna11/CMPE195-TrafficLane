@@ -1,5 +1,5 @@
 //============================================================================
-// Name        : cuda_kevinlai.cpp
+// Name        : cuda_kevinlai.cu
 // Author      : Kevin Lai
 // Version     : 1.0
 // Copyright   : Kevin Lai
