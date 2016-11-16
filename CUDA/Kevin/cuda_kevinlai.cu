@@ -9,12 +9,10 @@
 #include <iostream>
 #include "opencv2/opencv.hpp"
 #include "opencv2/gpu/gpu.hpp"
-#include "opencv2/core/cuda.hpp"
 
 using namespace std;
 using namespace cv;
 using namespace cv::gpu;
-using namespace cv::cuda;
 
 
 /* 
