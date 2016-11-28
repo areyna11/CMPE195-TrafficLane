@@ -1,31 +1,40 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-
+#include <opencv2/gpu/gpu.hpp>
+using namespace std;
+using namespace cv;
+using namespace cv::gpu;
 int main()
 {
 	
-	cv::Mat img;
-	cv::Mat dst;
+	Mat img;
+	Mat dst;
+	GpuMat d_img(img);
+	GpuMat d_dst;
 	
-	cv::VideoCapture input("vid_trim.mp4");
+	VideoCapture input("vid_trim.mp4");
 	
 	cv::VideoWriter output(
-		"sobel_lane.avi",
-		CV_FOURCC('X','V','I','D'),
-		30,
-		cv::Size(input.get(CV_CAP_PROP_FRAME_WIDTH),
-				input.get(CV_CAP_PROP_FRAME_HEIGHT))
-		);
+"sobel_lane.avi",
+CV_FOURCC('X','V','I','D'),
+30,
+cv::Size(input.get(CV_CAP_PROP_FRAME_WIDTH),
+input.get(CV_CAP_PROP_FRAME_HEIGHT))
+);
 		
 	
 	for(;;)
 	{
 		if(!input.read(img))
 			break;
-		cv::Sobel(img,dst,CV_8U,1,1);
+		d_img.upload(img);
+		Sobel(d_img,d_dst,CV_8U,1,1,5);
+		d_dst.download(dst);
+				imshow("dst",dst);
 		output.write(dst);
-		cv::imshow("img",img);
-		char c = cv::waitKey(30);
+		imshow("img",img);
+		
+		char c = waitKey(30);
 		
 		if(c == ' ')
 			break;

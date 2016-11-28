@@ -1,1 +1,0 @@
-/home/ubuntu/Documents/Project_Code/CMPE195-TrafficLane/src/Our_sobel/build/CMakeFiles/cv_lane.dir
