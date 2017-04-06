@@ -42,7 +42,7 @@ if __name__ == "__main__":
     #img = Image.open(File)
     img1 = cv2.imread('5.jpg')
     img = Image.open('5.jpg')
-    img2 = Image.open('5.jpg')
+    #img2 = Image.open('5.jpg')
     #img2 = cv2.imread('5.jpg')
     canvas.image = ImageTk.PhotoImage(img)
     canvas.create_image(0,0,image=canvas.image,anchor="nw")
@@ -70,20 +70,18 @@ if __name__ == "__main__":
         to=255,length= 500,orient=HORIZONTAL,tickinterval=51,variable = blue )
     blueSlider.pack(anchor=CENTER)
 
-    Tkinter.Label(window).pack()
+    #Tkinter.Label(window).pack()
 
 
     counter = 0
-
     #set default delta
-    delta = 7
+    delta = 4
     t = []
     a = (0,0)
     #get width & height
     (w,h) = img.size
     #c  = 0
     #function to be called when mouse is clicked
-    
     def printcoords(event):
         global counter,a,delta,canvas, B1
 
@@ -98,8 +96,9 @@ if __name__ == "__main__":
         t.append(r)
         t.append(g)
         t.append(b)
+        Tkinter.Label(window).pack()
 
-        temp = "Default Delta is "+str(delta)+'\n'+"From chosen pixel, R range = (" +str(r-7) +',' + str(r+7) + ')' +'\n' +"From chosen pixel, G range = (" +str(g-7) +',' + str(g+7) + ')' +'\n' +"From chosen pixel, B range = (" +str(b-7) +',' + str(b+7) + ')'
+        temp = "Default Delta is "+str(delta)+'\n'+"From chosen pixel, R range = (" +str(r-delta) +',' + str(r+delta) + ')' +'\n' +"From chosen pixel, G range = (" +str(g-delta) +',' + str(g+delta) + ')' +'\n' +"From chosen pixel, B range = (" +str(b-delta) +',' + str(b+delta) + ')'
         Tkinter.Label(window, text=temp).pack()
         redSlider.set(r)
         greenSlider.set(g)
@@ -108,12 +107,12 @@ if __name__ == "__main__":
         #t1 = [t[0] -delta,t[1]-delta,t[2]-delta]
 
         #iterate through pixels
-
-        pixels = img.load()
-
+        sam = Image.open('5.jpg')
         #callback function for button
         def seg():
             #set range
+            img = sam.copy()
+            pixels = img.load()
             t2 = [int(red.get()) +delta,int(green.get())+delta,int(blue.get())+delta]
             t1 = [int(red.get()) -delta,int(green.get())-delta,int(blue.get())-delta]
 
@@ -129,12 +128,13 @@ if __name__ == "__main__":
             canvas.pack()
             canvas.im = ImageTk.PhotoImage(img)
             canvas.create_image(0,0,image=canvas.im,anchor="nw")
-            temp2 = "Current R range = (" +str(int(red.get())-7) +',' + str(int(red.get())+7) + ')' +'\n' +"Current G range = (" +str(int(green.get())-7) +',' + str(int(green.get())+7) + ')' +'\n' +"Current B range = (" +str(int(blue.get())-7) +',' + str(int(blue.get())+7) + ')'
+            temp2 = "Current R range = (" +str(int(red.get())-delta) +',' + str(int(red.get())+delta) + ')' +'\n' +"Current G range = (" +str(int(green.get())-delta) +',' + str(int(green.get())+delta) + ')' +'\n' +"Current B range = (" +str(int(blue.get())-delta) +',' + str(int(blue.get())+delta) + ')'
             Tkinter.Label(a, text=temp2).pack()
-
+            #img = sam.copy()
         #Click button to generate color
         B1 = Tkinter.Button(root, text = "Generate Image Segmentation",command= seg)
         B1.pack()
+
 
         #set cursor invisible after choosing pixel
         counter +=1
@@ -150,12 +150,26 @@ if __name__ == "__main__":
             histr = cv2.calcHist([img1],[i],None,[256],[0,256])
             plt.plot(histr,color = col)
             plt.xlim([0,256])
+        #plot 3 RGB lines to show distribution
+        plt.axvline(x=r,linewidth=3, color='r',)
+        plt.axvline(x=g,linewidth=3, color='g')
+        plt.axvline(x=b,linewidth=3, color='b',label ='temp')
+        #labels for each RGB Line
+        plt.annotate('B', xy=(b-2, 2000), xytext=(b+10, 2000),
+            arrowprops=dict(facecolor='blue', arrowstyle="->"),
+            )
+        plt.annotate('R', xy=(r-2, 3000), xytext=(r+10, 3000),
+            arrowprops=dict(facecolor='red', arrowstyle="->"),
+            )
+        plt.annotate('G', xy=(g-2, 4000), xytext=(g+10, 4000),
+            arrowprops=dict( arrowstyle="->",facecolor='green'),
+            )
         plt.show()
 
-        print a
+        #print a
         #print counter
-        print "(x,y) = ",a
-        print "Chosen pixel has RGB as ",r,g,b
+        #print "(x,y) = ",a
+        #print "Chosen pixel has RGB as ",r,g,b
         #color segmentation
         
     canvas.bind("<Button 1>",printcoords)
