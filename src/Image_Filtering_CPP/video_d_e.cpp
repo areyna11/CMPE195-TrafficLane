@@ -7,6 +7,8 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h> 
+#include "readbmp.h"
+#include "stack.h"
 using namespace cv;
 using namespace std;
 
@@ -17,13 +19,16 @@ g++ video_d_e.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib
 ./video_d_e to run. 
 */
 
-//function to load and play a video from file
-void img_frm_file()
+/*
+ * KL (April 17, 2017): Function that performs a series of filtering operations on a image loaded from a file.
+ */
+void image_filtering()
 {
+	// Allows user to load image from file
 	cout << "Showing a  list of files in the working directory.\n\n";
-	cout << "Type in the name of the file you want to open (with avi or mp4 extension).\n\n";
+	cout << "Type in the name of the file you want to open.\n\n";
 	string file_name = "";
-	//showing the file in the working directory	
+	// Shows the file in the working directory	
 	DIR *d;
 	struct dirent *dir;
 	d = opendir(".");
@@ -39,11 +44,15 @@ void img_frm_file()
 	cin >> file_name;
 	cout << "Showing "<<file_name <<"\n\n";
 
+	// VideoCapture variable that loads the video from a video file
 	VideoCapture input_video(file_name);
 	
 	Size img_size(500, 500);
+	
+	// OpenCV Mat variable that stores the source input image
 	Mat img(img_size, CV_32F);
 	
+	// Kernel used in filtering operations
 	Mat kernel;
 	int kernel_size = 5; // 5x5 kernel
 	
@@ -60,6 +69,8 @@ void img_frm_file()
 	
 	// OpenCV Mat variables used to cropped the image
 	Mat croppedRef, croppedImage;
+	
+	// ----------- Filtering Operations Start Here ----------------------------
 	
 	for(;;)
 	{
@@ -123,7 +134,7 @@ int main()
 {
 	for(;;)
 	{
-		img_frm_file();
+		image_filtering();
 
 		if (waitKey(30) >= 0 )
 			break;	
