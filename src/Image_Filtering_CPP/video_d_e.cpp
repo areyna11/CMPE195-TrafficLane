@@ -7,8 +7,6 @@
 #include <dirent.h>
 #include <stdio.h>
 #include <string.h> 
-#include "readbmp.h"
-#include "stack.h"
 using namespace cv;
 using namespace std;
 
