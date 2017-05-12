@@ -204,70 +204,119 @@ void flood_filter(int r, int c){
 // HL floodfill engine for 8 connected neighbours ends here 
 
 /*
+ * Mat Type String Display Function - Kevin Lai
+ * Used to display the return of Mat.type() as a string instead of integer
+ * Primarily for Debugging
+ */
+string type2str(int type) {
+  string str;
+
+  uchar depth = type & CV_MAT_DEPTH_MASK;
+  uchar channels = 1 + (type >> CV_CN_SHIFT);
+
+  switch ( depth ) {
+    case CV_8U:  str = "8U"; break;
+    case CV_8S:  str = "8S"; break;
+    case CV_16U: str = "16U"; break;
+    case CV_16S: str = "16S"; break;
+    case CV_32S: str = "32S"; break;
+    case CV_32F: str = "32F"; break;
+    case CV_64F: str = "64F"; break;
+    default:     str = "User"; break;
+  }
+
+  str += "C";
+  str += (channels+'0');
+
+  return str;
+}
+
+/*
+ * Main function - Kevin Lai
  * KL (April 17, 2017): Function that performs a series of filtering operations on a image loaded from a file.
  * KL (April 20, 2017): Modified previous version to now only load image from file for easy testing. Also integrated flood_fill filtering.
  */
-void image_filtering()
+int main()
 {
-	// Allows user to load image from file
-	cout << "Showing a list of files in the working directory.\n\n";
-	cout << "Type in the name of the file you want to open.\n\n";
-	string file_name = "";
-	// Shows the file in the working directory	
-	DIR *d;
-	struct dirent *dir;
-	d = opendir(".");
-	if (d)
-	{
-		while ((dir = readdir(d)) != NULL)
-		{
-			printf("%s\n", dir->d_name);
-		}
-		closedir(d);
-	}
-	cout << endl;
-	cin >> file_name;
-	cout << "Showing "<<file_name <<"\n\n";
+		Size img_size(500, 500);
 	
-	Size img_size(500, 500);
+		// OpenCV Mat variable that stores the source input image
+		Mat img(img_size, CV_32F, Scalar(0,0,0));
 	
-	// OpenCV Mat variable that stores the source input image
-	Mat img(img_size, CV_32F, Scalar(0,0,0));
+		// Kernel used in filtering operations
+		Mat kernel;
+		int kernel_size = 5; // 5x5 kernel
 	
-	// Read image from file and store in Mat img
-	img = imread(file_name, CV_LOAD_IMAGE_COLOR);
+		// OpenCV Mat variables to contain the image matrixes after each filter is applied
+		Mat img_erosion(img_size, CV_32F, Scalar(0,0,0)),
+		    img_dilation(img_size, CV_32F, Scalar(0,0,0)),
+		    img_diff(img_size, CV_32F, Scalar(0,0,0)),
+		    gray_diff(img_size, CV_32F, Scalar(0,0,0)),
+		    img_diff_erosion(img_size, CV_32F, Scalar(0,0,0));
 	
-	// Kernel used in filtering operations
-	Mat kernel;
-	int kernel_size = 5; // 5x5 kernel
+		int niters = 3; // Number of iterations
 	
-	// OpenCV Mat variables to contain the image matrixes after each filter is applied
-	Mat img_erosion(img_size, CV_32F, Scalar(0,0,0)), img_dilation(img_size, CV_32F, Scalar(0,0,0)), img_diff(img_size, CV_32F, Scalar(0,0,0)), gray_diff(img_size, CV_32F, Scalar(0,0,0)), img_diff_erosion(img_size, CV_32F, Scalar(0,0,0));
+		// The threshold value variable
+		int thresh, maxValue;
 	
-	int niters = 3; // Number of iterations
-	
-	// The threshold value variable
-	int thresh, maxValue;
-	
-	// OpenCV Mat variable that contains the filtered image matrix before floodfill
-	Mat diff_e_threshold(img_size, CV_32F, Scalar(0,0,0));
+		// OpenCV Mat variable that contains the filtered image matrix before floodfill
+		Mat diff_e_threshold(img_size, CV_32F, Scalar(0,0,0));
 
-	// OpenCV Mat variables used to cropped the image
-	Mat croppedRef(img_size, CV_32F, Scalar(0,0,0)), croppedImage(img_size, CV_32F, Scalar(0,0,0));
+		// OpenCV Mat variables used to cropped the image
+		Mat croppedRef(img_size, CV_32F, Scalar(0,0,0)),
+		    croppedImage(img_size, CV_32F, Scalar(0,0,0));
 	
-	// OpenCV Mat Array that contains the individual RGB arrays of the image. Each color is stored in its own Mat Variable in the array. Default MAT channel format = BGR.
-	Mat colors[3];
+		// OpenCV Mat Array that contains the individual RGB arrays of the image.
+		// Each color is stored in its own Mat Variable in the array. Default MAT channel format = BGR.
+		Mat colors[3];
 	
-	// OpenCV Mat variable that contains the filtered image matrix after floodfill
-	Mat finalImage(img_size, CV_32F, Scalar(0,0,0)), finalRef(img_size, CV_32F, Scalar(0,0,0));
+		// OpenCV Mat variable that contains the filtered image matrix after floodfill
+		Mat finalImage(img_size, CV_32F, Scalar(0,0,0));
 	
-	// ----------- Filtering Operations Start Here ----------------------------
+		// Parameter passed to floodfill operation.
+		Rect rectRegion;
+		
+		// Point to start floodfill at
+		Point mousePoint;
+		
+		// Mode of floodfill operation. Default mode = 4 connected-neighbors.
+		int connected_neighbors_mode = 8;		
+	
+	for(;;)
+	{
+		// Allows user to load image from file
+		cout << "Showing a list of files in the working directory.\n\n";
+		cout << "Type in the name of the file you want to open.\n\n";
+		string file_name = "";
+		// Shows the file in the working directory	
+		DIR *d;
+		struct dirent *dir;
+		d = opendir(".");
+		if (d)
+		{
+			while ((dir = readdir(d)) != NULL)
+			{
+				printf("%s\n", dir->d_name);
+			}
+			closedir(d);
+		}
+		cout << endl;
+		cin >> file_name;
+		cout << "Showing "<<file_name <<"\n\n";
+	
+		// Read image from file and store in Mat img
+		img = imread(file_name, CV_LOAD_IMAGE_COLOR);
+	
+		// ----------- Filtering Operations Start Here ----------------------------
 	
 		// Resizes the image to make it fit the screen
 		resize(img, img, img_size, 0, 0, INTER_AREA);
 		
 		// Cropping Region of Interest (ROI)
-		Rect cropROI((int)(img_size.width*0.25), (int)(img_size.height*0.45),(int)(img_size.width*(0.75-0.25)),(int)(img_size.height*(0.8-0.45)));
+		Rect cropROI((int)(img_size.width*0.25),
+			    (int)(img_size.height*0.45),
+			    (int)(img_size.width*(0.75-0.25)),
+			    (int)(img_size.height*(0.8-0.45)));
 		
 		// Creates a reference to the image region, but does not also copy the image data
 		croppedRef = img(cropROI);
@@ -279,7 +328,8 @@ void image_filtering()
 		split(croppedImage, colors);
 		
 		// Sets up the kernel
-		kernel = Mat::ones( kernel_size, kernel_size, CV_32F)/ (int)(kernel_size*kernel_size);
+		kernel = Mat::ones(kernel_size, kernel_size, CV_32F)/
+				  (int)(kernel_size*kernel_size);
 		
 		// Performs Erosion on the image
 		erode(croppedImage, img_erosion, kernel, Point(-1,-1), niters);
@@ -297,20 +347,29 @@ void image_filtering()
 		erode(gray_diff, img_diff_erosion, kernel, Point(-1,-1), niters);
 		
 		thresh = 50;
-        maxValue = 255;
+        	maxValue = 255;
 		
 		// Performs thresholding on the eroded image difference
-        threshold(img_diff_erosion, diff_e_threshold, thresh, maxValue, THRESH_BINARY);
+        	threshold(img_diff_erosion, diff_e_threshold, thresh, maxValue, THRESH_BINARY);
+		
+			finalImage = diff_e_threshold.clone();
+		
+		cout << "Channel: " << diff_e_threshold.channels() << endl;
+		cout << "Type: " << type2str(diff_e_threshold.type()) << endl;
+
+		cout << "colors channel: " << colors[0].channels() << endl;
+		cout << "colors Type: " << type2str(colors[0].type()) << endl;
+				
 		
 		// Loading the floodfill arrays with the image data
 		for (int x = 0; x < diff_e_threshold.rows; x++){
 			for (int y = 0; y < diff_e_threshold.cols; y++){
 				
 				// Loading object array with data
-				if((diff_e_threshold.at<float>(x,y)*0) != 0){
+				if(((int)diff_e_threshold.at<unsigned char>(x,y)*0) != 0){
 					zero_crossing_data[x][y] = 0;
 				}
-				else if(abs(diff_e_threshold.at<float>(x,y)) > thresh){
+				else if(abs((int)diff_e_threshold.at<unsigned char>(x,y)) > thresh){
 					zero_crossing_data[x][y] = 255;
 				}
 				else{
@@ -318,37 +377,55 @@ void image_filtering()
 				}
 				
 				// Loading red array with image data
-				if((colors[0].at<float>(x,y)*0) != 0){
+				if(((int)colors[0].at<unsigned char>(x,y)*0) != 0){
 					red_array[x][y] = 0;
 				}
-				else if(abs(colors[0].at<float>(x,y)) > 255){
+				else if(abs((int)colors[0].at<unsigned char>(x,y)) > 255){
 					red_array[x][y] = 255;
 				}
 				else{
-					red_array[x][y] = abs(colors[0].at<float>(x,y));
+					red_array[x][y] = abs((int)colors[0].at<unsigned char>(x,y));
 				}
 
 			}
 		}
-		
+	
 		// Prints the initial state of the binary and color arrays before applying floodfill
-		printB(diff_e_threshold.rows, diff_e_threshold.cols); 
+	//	printB(diff_e_threshold.rows, diff_e_threshold.cols); 
 
 		// Setting the thresholds for the floodfill filtering
-		threshold_r = 150;       // for red  
-		threshold_size_l = 40;      // for size 
-		threshold_size_h = 80;
+		threshold_r = 0;      // for red  
+		threshold_size_l = 40;  // for size 
+		threshold_size_h = 100;	
 		
 		// Performs floodfill filtering
 		flood_fill(diff_e_threshold.rows, diff_e_threshold.cols);
 		flood_filter(diff_e_threshold.rows, diff_e_threshold.cols);
 		
+		rectRegion = Rect(Point(), finalImage.size());
+		
+		for (int x = 0; x < finalImage.rows; x++){
+			for (int y = 0; y < finalImage.cols; y++){
+				
+				if(zero_crossing_data[x][y] == 0){
+					//cout << "X: " << x << " Y: " << y << endl;
+					
+					mousePoint = Point(x, y);
+					
+					if(rectRegion.contains(mousePoint)){
+						// Performs the floodfill filter operation on the clicked on cluster.
+						floodFill(finalImage, Point(0,0), Scalar(0), &rectRegion, Scalar(), Scalar(), connected_neighbors_mode);
+					}
+				}
+
+			}
+		}
+		
+		cout << "Rows: " << finalImage.rows << endl;
+		cout << "Columns: " << finalImage.cols << endl;
+		
 		// Prints the resulting state of the binary and color arrays after applying floodfill
-		printB(diff_e_threshold.rows, diff_e_threshold.cols); 
-	
-		// ??? Error: finalImage is all black even when threshold_r = threshold_size = 0
-		// Loads the final image matrix with the modified image data after performing floodfill filtering
-		finalImage = Mat(diff_e_threshold.rows, diff_e_threshold.cols, CV_32F, zero_crossing_data);
+	//	printB(diff_e_threshold.rows, diff_e_threshold.cols); 
 
 		// Shows both the original image and the filtered image in new windows
 		imshow("Original Image File", croppedImage);
@@ -358,17 +435,21 @@ void image_filtering()
 		if (waitKey(30) >= 0)
 		{
 			destroyAllWindows();
-		}		
-}
-
-// Main function - Kevin Lai
-int main()
-{
-	for(;;)
-	{
-		image_filtering();
-
-		if (waitKey(30) >= 0 )
-			break;	
+		}
+		
+		if (waitKey(30) >= 0)
+		{
+			break;
+		}
+		
+		/*
+		// Leaves the Windows open indefinitely
+		if (waitKey(0) >= 0)
+		{
+			break;
+		}
+		
+		*/
+		
 	}
 }

@@ -60,9 +60,6 @@ int main()
 		// OpenCV Mat variable that stores the source input image
 		Mat img(img_size, CV_32F, Scalar(0,0,0));
 	
-		// Read image from file and store in Mat img
-		img = imread(file_name, CV_LOAD_IMAGE_COLOR);
-	
 		// Kernel used in filtering operations
 		Mat kernel;
 		int kernel_size = 5; // 5x5 kernel
@@ -115,6 +112,9 @@ int main()
 		cout << endl;
 		cin >> file_name;
 		cout << "Showing "<<file_name <<"\n\n";
+		
+		// Read image from file and store in Mat img
+		img = imread(file_name, CV_LOAD_IMAGE_COLOR);
 	
 		// ----------- Filtering Operations Start Here ----------------------------
 	
