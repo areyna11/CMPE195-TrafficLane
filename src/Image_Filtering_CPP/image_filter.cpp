@@ -55,29 +55,7 @@ void onMouse(int event, int x, int y, int flags, void *param)
  */
 int main()
 {
-	for(;;)
-	{
-		// Allows user to load image from file
-		cout << "Showing a list of files in the working directory.\n\n";
-		cout << "Type in the name of the file you want to open.\n\n";
-		string file_name = "";
-		// Shows the file in the working directory	
-		DIR *d;
-		struct dirent *dir;
-		d = opendir(".");
-		if (d)
-		{
-			while ((dir = readdir(d)) != NULL)
-			{
-				printf("%s\n", dir->d_name);
-			}
-			closedir(d);
-		}
-		cout << endl;
-		cin >> file_name;
-		cout << "Showing "<<file_name <<"\n\n";
-	
-		Size img_size(500, 500);
+	Size img_size(500, 500);
 	
 		// OpenCV Mat variable that stores the source input image
 		Mat img(img_size, CV_32F, Scalar(0,0,0));
@@ -115,6 +93,28 @@ int main()
 		// OpenCV Mat variable that contains the filtered image matrix after floodfill
 		Mat finalImage(img_size, CV_32F, Scalar(0,0,0)),
 		    finalRef(img_size, CV_32F, Scalar(0,0,0));
+	
+	for(;;)
+	{
+		// Allows user to load image from file
+		cout << "Showing a list of files in the working directory.\n\n";
+		cout << "Type in the name of the file you want to open.\n\n";
+		string file_name = "";
+		// Shows the file in the working directory	
+		DIR *d;
+		struct dirent *dir;
+		d = opendir(".");
+		if (d)
+		{
+			while ((dir = readdir(d)) != NULL)
+			{
+				printf("%s\n", dir->d_name);
+			}
+			closedir(d);
+		}
+		cout << endl;
+		cin >> file_name;
+		cout << "Showing "<<file_name <<"\n\n";
 	
 		// ----------- Filtering Operations Start Here ----------------------------
 	
