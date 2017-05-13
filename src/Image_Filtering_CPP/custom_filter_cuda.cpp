@@ -21,7 +21,7 @@ using namespace cv::gpu;
 // using namespace cv::cuda;
 
 /*
-g++ custom_filter_cuda.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o custom_filter_cuda
+g++ custom_filter_cuda.cpp stack.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o custom_filter_cuda
 
 
 ./custom_filter_cuda to run. 
@@ -449,7 +449,6 @@ int main()
 		}
 		
 		namedWindow("FloodFill Image File", 1);
-		cv::setMouseCallback("FloodFill Image File", onMouse, 0);
 
 		// Shows both the original image and the filtered image in new windows
 		imshow("Original Image File", croppedImage);
