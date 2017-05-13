@@ -204,34 +204,6 @@ void flood_filter(int r, int c){
 // HL floodfill engine for 8 connected neighbours ends here 
 
 /*
- * Mat Type String Display Function - Kevin Lai
- * Used to display the return of Mat.type() as a string instead of integer
- * Primarily for Debugging
- */
-string type2str(int type) {
-  string str;
-
-  uchar depth = type & CV_MAT_DEPTH_MASK;
-  uchar channels = 1 + (type >> CV_CN_SHIFT);
-
-  switch ( depth ) {
-    case CV_8U:  str = "8U"; break;
-    case CV_8S:  str = "8S"; break;
-    case CV_16U: str = "16U"; break;
-    case CV_16S: str = "16S"; break;
-    case CV_32S: str = "32S"; break;
-    case CV_32F: str = "32F"; break;
-    case CV_64F: str = "64F"; break;
-    default:     str = "User"; break;
-  }
-
-  str += "C";
-  str += (channels+'0');
-
-  return str;
-}
-
-/*
  * Main function - Kevin Lai
  * KL (April 17, 2017): Function that performs a series of filtering operations on a image loaded from a file.
  * KL (April 20, 2017): Modified previous version to now only load image from file for easy testing. Also integrated flood_fill filtering.
@@ -354,12 +326,12 @@ int main()
 		
 			finalImage = diff_e_threshold.clone();
 		
-		cout << "Channel: " << diff_e_threshold.channels() << endl;
-		cout << "Type: " << type2str(diff_e_threshold.type()) << endl;
+		cout << "Channel: " << diff_e_threshold.channels() << "\n";
+		cout << "Type: " << diff_e_threshold.type() << "\n";
 
-		cout << "colors channel: " << colors[0].channels() << endl;
-		cout << "colors Type: " << type2str(colors[0].type()) << endl;
-				
+		cout << "colors channel: " << colors[0].channels() << "\n";
+		cout << "colors Type: " << colors[0].type() << "\n";
+		
 		
 		// Loading the floodfill arrays with the image data
 		for (int x = 0; x < diff_e_threshold.rows; x++){
@@ -421,8 +393,8 @@ int main()
 			}
 		}
 		
-		cout << "Rows: " << finalImage.rows << endl;
-		cout << "Columns: " << finalImage.cols << endl;
+		cout << "Rows: " << finalImage.rows << "\n";
+		cout << "Columns: " << finalImage.cols << "\n";
 		
 		// Prints the resulting state of the binary and color arrays after applying floodfill
 	//	printB(diff_e_threshold.rows, diff_e_threshold.cols); 
