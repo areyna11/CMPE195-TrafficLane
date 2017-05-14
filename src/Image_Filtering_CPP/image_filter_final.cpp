@@ -380,8 +380,8 @@ int main()
 			}
 		}
 
-		// Shows both the original image and the filtered image in new windows
-		imshow("Original Image File", croppedImage);
+		// Shows both the original cropped image and the filtered image in new windows
+		imshow("Original Cropped Image File", croppedImage);
 		imshow("Filtered Image File", diff_e_threshold);
 		imshow("FloodFill Image File", finalImage);
 		
