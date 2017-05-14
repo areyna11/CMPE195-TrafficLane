@@ -277,7 +277,7 @@ int main()
 	Rect rectRegion;
 		
 	// Point to start floodfill at
-	Point mousePoint;
+	Point mPoint;
 		
 	// Mode of floodfill operation. Default mode = 4 connected-neighbors.
 	int connected_neighbors_mode = 8;	
@@ -439,7 +439,7 @@ int main()
 					
 					mPoint = Point(x, y);
 					
-					if(rectRegion.contains(mousePoint)){
+					if(rectRegion.contains(mPoint)){
 						// Performs the floodfill filter operation on the cluster.
 						floodFill(finalImage, mPoint, Scalar(0), &rectRegion, Scalar(), Scalar(), connected_neighbors_mode);
 					}
