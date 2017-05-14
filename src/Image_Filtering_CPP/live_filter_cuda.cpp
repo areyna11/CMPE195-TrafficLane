@@ -16,9 +16,9 @@ using namespace std;
 // For OpenCV 2.4
 using namespace cv::gpu;
 /*
-g++ video_filter_cuda.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o video_filter_cuda
+g++ live_filter_cuda.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o live_filter_cuda
 
-./video_filter_cuda to run. 
+./live_filter_cuda to run. 
 */
 
 Mat niceImageK;
@@ -45,31 +45,13 @@ void onMouse(int event, int x, int y, int flags, void *param)
 	imshow("FloodFill Image File", niceImageK);
 }
 
-//Function that performs a series of filtering operations on a live video feed.
+//Function that performs a series of filtering operations on a video loaded from a file.
 int main()
 {
-	namedWindow("Video File", 1);	
+	namedWindow("Live Video Feed", 1);	
+	cout << "Showing a live video feed.\n\n";		
+	VideoCapture input_live(0);
 	
-	cout << "Showing a  list of files in the working directory.\n\n";
-	cout << "Type in the name of the file you want to open (with avi or mp4 extension).\n\n";
-	string file_name = "";
-	//showing the file in the working directory	
-	DIR *d;
-	struct dirent *dir;
-	d = opendir("./videos/");
-	if (d)
-	{
-		while ((dir = readdir(d)) != NULL)
-		{
-			printf("%s\n", dir->d_name);
-		}
-		closedir(d);
-	}
-	cout << endl;
-	cin >> file_name;
-	cout << "Showing "<<file_name <<"\n\n";
-
-	VideoCapture input_video(("./videos/" + file_name));
 	Size img_size(500, 500);
 	
 	// OpenCV Mat variable that stores the source input image
@@ -89,7 +71,7 @@ int main()
 
 	int niters = 3; // Number of iterations
 
-	// The threshold value variable
+	// The threshold value variable	
 	int thresh = 50;
 	int maxValue = 255;
 
@@ -119,14 +101,12 @@ int main()
 	{
 	// ----------- Filtering Operations Start Here ----------------------------
 
-		if(!input_video.read(img))
+		if(!input_live.read(img))
 		{
-			destroyWindow("Video File");
+			destroyWindow("Live Video Feed");
 			break;
 		}		
-	
-		resize(img, img, img_size, 0, 0,INTER_LINEAR);
-		
+
 		// Cropping Region of Interest (ROI)
 		Rect cropROI((int)(img_size.width*0.25),
 			    (int)(img_size.height*0.45),
@@ -143,23 +123,25 @@ int main()
 		cv::split(croppedImage, colors);
 		
 		croppedImage_src.upload(croppedImage);
+
 		
 		//changed the croppedImage_src from a 3 channel (8UC3 to 8UC4, the expected input for the erode/dilate functions)
 		gpu::cvtColor(croppedImage_src, NewcroppedImage_src, CV_BGR2BGRA, 1);
-		
+
+		// Performs Erosion on the image
 		gpu::erode(NewcroppedImage_src, img_erosion_src, kernel, Point(-1,-1), niters);
 
 		// Performs Dilation on the image
 		gpu::dilate(NewcroppedImage_src, img_dilation_src, kernel, Point(-1,-1), niters);
 
-		// Computes the difference between the Image Dilation and Image Erosion and stores it		
+		// Computes the difference between the Image Dilation and Image Erosion and stores it
 		img_erosion_src.download(img_erosion);
 		img_dilation_src.download(img_dilation);
 		img_diff = img_dilation - img_erosion;
 		img_diff_src.upload(img_diff);
-		
+
 		// Sets the image difference to grayscale
-		//Change from a 4 channel to a singe channel 8U mat, (CV8UC4 -> CV8UC1)
+		//Change from a 4 channel to a singe channel 8U mat, (CV8UC4 -> CV8UC1)		
 		gpu::cvtColor(img_diff_src, gray_diff_src, CV_BGRA2GRAY, 1);
 
 		// Performs an additional Erosion on the image
@@ -178,7 +160,7 @@ int main()
 		// Shows both the original cropped image and the filtered image in new windows
 		imshow("Original Cropped Image File", croppedImage);
 		imshow("Filtered Image File", diff_e_threshold);
-		imshow("Video Feed",img);
+		imshow("Live Video Feed",img);
 		if (waitKey(30) >= 0 )
 			break;	
 
