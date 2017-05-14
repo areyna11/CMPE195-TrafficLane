@@ -256,8 +256,6 @@ int main()
 		// Mode of floodfill operation. Default mode = 4 connected-neighbors.
 		int connected_neighbors_mode = 8;		
 	
-	for(;;)
-	{
 		// Allows user to load image from file
 		cout << "Showing a list of files in the working directory.\n\n";
 		cout << "Type in the name of the file you want to open.\n\n";
@@ -277,9 +275,19 @@ int main()
 		cout << endl;
 		cin >> file_name;
 		cout << "Showing "<<file_name <<"\n\n";
+		
+		VideoCapture input_video((file_name));
 	
+	for(;;)
+	{
+		if(!input_video.read(img))
+		{
+			destroyWindow("Video File");
+			break;
+		}
+		
 		// Read image from file and store in Mat img
-		img = imread(file_name, CV_LOAD_IMAGE_COLOR);
+		//img = imread(file_name, CV_LOAD_IMAGE_COLOR);
 	
 		// ----------- Filtering Operations Start Here ----------------------------
 	
@@ -384,7 +392,10 @@ int main()
 		imshow("Original Cropped Image File", croppedImage);
 		imshow("Filtered Image File", diff_e_threshold);
 		imshow("FloodFill Image File", finalImage);
-		
-		waitKey(0);
+		imshow("Video File", img);
+			
+		if (waitKey(30) >= 0 )
+			break;	
+
 	}
 }
