@@ -34,8 +34,8 @@ int label = 0;                          //to colour each region
 int i,j;    
 
 int threshold_r = 150;       // for red  
-//int threshold_g = 150;     // for green    
-//int threshold_b = 150;     // for blue  
+int threshold_g = 150;     // for green    
+int threshold_b = 150;     // for blue  
 int threshold_size = 2;      // for size   
 
 int threshold_size_l = 10;	// for lower threshold bound
@@ -184,15 +184,17 @@ void flood_filter(int r, int c){
     unsigned int topx, topy=0, bottomx, bottomy=1000; 
     unsigned int leftx=1000, lefty, rightx=0, righty;
 
-        printf("threshold_r %d\n", threshold_r);
-        printf("threshold_size %d\n", threshold_size);
+        //printf("threshold_r %d\n", threshold_r);
+        //printf("threshold_size %d\n", threshold_size);
 
     for(i = 0; i < r ; i++){
        for (j = 0; j < c ; j++) {
             //if(flood_size[label] > flood_threshold ){
             //if(red_array[zero_crossing_data[i][j]] > threshold && is_color(i,j)){
 
-            if((red_array[i][j] >= threshold_r)               //keep if (1) red above     
+            if((red_array[i][j] >= threshold_r)               //keep if (1) red above 
+               && ( green_array[i][j] >= threshold_g)		  //keep if green above
+               && ( blue_array[i][j] >= threshold_b)		  //keep if blue above  
                && ( flood_size[zero_crossing_data[i][j]] >= threshold_size_l)
 			   && ( flood_size[zero_crossing_data[i][j]] <= threshold_size_h) ) { //and (2) size above  
             }
@@ -249,7 +251,7 @@ int main()
 		Rect rectRegion;
 		
 		// Point to start floodfill at
-		Point mousePoint;
+		Point mPoint;
 		
 		// Mode of floodfill operation. Default mode = 4 connected-neighbors.
 		int connected_neighbors_mode = 8;		
@@ -326,14 +328,6 @@ int main()
 		
 			finalImage = diff_e_threshold.clone();
 		
-		cout << "Channel: " << diff_e_threshold.channels() << "\n";
-		cout << "Type: " << diff_e_threshold.type() << "\n";
-
-		cout << "colors channel: " << colors[0].channels() << "\n";
-		cout << "colors Type: " << colors[0].type() << "\n";
-		
-		printf("Label %i\n", label);
-		
 		// Loading the floodfill arrays with the image data
 		for (int x = 0; x < diff_e_threshold.rows; x++){
 			for (int y = 0; y < diff_e_threshold.cols; y++){
@@ -349,25 +343,18 @@ int main()
 					zero_crossing_data[x][y] = 0;
 				}
 				
-				// Loading red array with image data
-				if(((int)colors[0].at<unsigned char>(x,y)*0) != 0){
-					red_array[x][y] = 0;
-				}
-				else if(abs((int)colors[0].at<unsigned char>(x,y)) > 255){
-					red_array[x][y] = 255;
-				}
-				else{
-					red_array[x][y] = abs((int)colors[0].at<unsigned char>(x,y));
-				}
-
+				// Loading color arrays with image data
+				blue_array[x][y] = abs((int)colors[0].at<unsigned char>(x,y));
+				green_array[x][y] = abs((int)colors[1].at<unsigned char>(x,y));
+				red_array[x][y] = abs((int)colors[2].at<unsigned char>(x,y));
+				
 			}
 		}
-	
-		// Prints the initial state of the binary and color arrays before applying floodfill
-	//	printB(diff_e_threshold.rows, diff_e_threshold.cols); 
 
 		// Setting the thresholds for the floodfill filtering
-		threshold_r = 0;      // for red  
+		threshold_b = 100;		// for blue
+		threshold_g = 100;		// for green
+		threshold_r = 100;      // for red  
 		threshold_size_l = 10;  // for size 
 		threshold_size_h = 500;	
 		
@@ -381,48 +368,23 @@ int main()
 			for (int y = 0; y < finalImage.cols; y++){
 				
 				if(zero_crossing_data[x][y] == 0){
-					//cout << "X: " << x << " Y: " << y << "\n";
 					
-					mousePoint = Point(x, y);
+					mPoint = Point(x, y);
 					
-					if(rectRegion.contains(mousePoint)){
+					if(rectRegion.contains(mPoint)){
 						// Performs the floodfill filter operation on the clicked on cluster.
-						floodFill(finalImage, Point(0,0), Scalar(0), &rectRegion, Scalar(), Scalar(), connected_neighbors_mode);
+						floodFill(finalImage, mPoint, Scalar(0), &rectRegion, Scalar(), Scalar(), connected_neighbors_mode);
 					}
 				}
 
 			}
 		}
-		
-		cout << "Rows: " << finalImage.rows << "\n";
-		cout << "Columns: " << finalImage.cols << "\n";
-		
-		// Prints the resulting state of the binary and color arrays after applying floodfill
-	//	printB(diff_e_threshold.rows, diff_e_threshold.cols); 
 
 		// Shows both the original image and the filtered image in new windows
 		imshow("Original Image File", croppedImage);
 		imshow("Filtered Image File", diff_e_threshold);
 		imshow("FloodFill Image File", finalImage);
-
-		if (waitKey(30) >= 0)
-		{
-			destroyAllWindows();
-		}
 		
-		if (waitKey(30) >= 0)
-		{
-			break;
-		}
-		
-		/*
-		// Leaves the Windows open indefinitely
-		if (waitKey(0) >= 0)
-		{
-			break;
-		}
-		
-		*/
-		
+		waitKey(0);
 	}
 }
