@@ -34,8 +34,7 @@ This is the branch in which our final code will be. The code does imaging filter
 		i. pwd: ubuntu
 10. Once the proper information has been entered, click next and a terminal window will pop up. This will ssh into the target and install all the software, such as OpenCV, Cuda libraries and VisionWorks.
 11. Then, clone the GitHub code repository: https://github.com/areyna11/CMPE195-TrafficLane
-
-##Directory Structure:
+# Directory Structure:
 1. The main programs are located in the src folder
 	a. live\_filter\_cuda.cpp is the program that performs image processing on a live video feed. It performs Dilation, Erosion on a cropped image frame from the live feed. It then calculates the image differences. It then goes to a grayscale and performs image thresholding. Finally, the processed frame is displayed. Another window is generated, where  floodfill processing can be done in real time. In total, four windows are formed.
 		i. the live video feed
@@ -52,7 +51,6 @@ This is the branch in which our final code will be. The code does imaging filter
 		CMPE195-TrafficLane/src/videos/8sec.mp4
 		CMPE195-TrafficLane/src/videos/25.mp4
 		CMPE195-TrafficLane/src/videos/vid_trim.mp4
-
 # Execution:
 1. After the repository has been cloned onto a Jetson compatible platform with OpenCV4Tegra 2.4.13, compile and run the program using the console commands specified within each source code file within the comments.
 2. While running the program, the live video feed will be displayed and the video processing will occur automatically. The result after processing and filtering is also displayed on screen.
