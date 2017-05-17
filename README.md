@@ -35,7 +35,26 @@ This is the branch in which our final code will be. The code does imaging filter
 10. Once the proper information has been entered, click next and a terminal window will pop up. This will ssh into the target and install all the software, such as OpenCV, Cuda libraries and VisionWorks.
 11. Then, clone the GitHub code repository: https://github.com/areyna11/CMPE195-TrafficLane
 
+##Directory Structure:
+1. The main programs are located in the src folder
+	a. live\_filter\_cuda.cpp is the program that performs image processing on a live video feed. It performs Dilation, Erosion on a cropped image frame from the live feed. It then calculates the image differences. It then goes to a grayscale and performs image thresholding. Finally, the processed frame is displayed. Another window is generated, where  floodfill processing can be done in real time. In total, four windows are formed.
+		i. the live video feed
+		ii. cropped live feed
+		iii. Processed image from feed
+		iv. Floodfill processing frame
+  	b. video\_filter\_cuda.cpp is the exact program as above, only that it prompts the user within the console to select a video from the src/videos/ folder. The src/video/ folder contains captured videos of road lanes.
+	c. custom\_filter\_cuda.cpp is the exact program as live\_filter_cuda.cpp. It uses a custom floodfill implementation. 
+2. Layout
+	CMPE195-TrafficLane/src/custom\_filter_cuda.cpp
+	CMPE195-TrafficLane/src/live\_filter_cuda.cpp
+	CMPE195-TrafficLane/src/video\_filter_cuda.cpp
+	CMPE195-TrafficLane/src/videos
+		CMPE195-TrafficLane/src/videos/8sec.mp4
+		CMPE195-TrafficLane/src/videos/25.mp4
+		CMPE195-TrafficLane/src/videos/vid_trim.mp4
+
 # Execution:
-1. After the program has been loaded onto the board, compile and run the program using the commands specified in the source code file.
+1. After the repository has been cloned onto a Jetson compatible platform with OpenCV4Tegra 2.4.13, compile and run the program using the console commands specified within each source code file within the comments.
 2. While running the program, the live video feed will be displayed and the video processing will occur automatically. The result after processing and filtering is also displayed on screen.
+
 
