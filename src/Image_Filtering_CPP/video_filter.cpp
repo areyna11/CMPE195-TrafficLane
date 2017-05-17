@@ -16,7 +16,7 @@ using namespace std;
 g++ video_filter.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o video_filter
 
 
-./image_filter to run. 
+./video_filter to run. 
 */
 
 
@@ -48,29 +48,6 @@ void onMouse(int event, int x, int y, int flags, void *param)
 	imshow("FloodFill Image File", niceImageK);
 }
 
-string type2str(int type) {
-  string r;
-
-  uchar depth = type & CV_MAT_DEPTH_MASK;
-  uchar chans = 1 + (type >> CV_CN_SHIFT);
-
-  switch ( depth ) {
-    case CV_8U:  r = "8U"; break;
-    case CV_8S:  r = "8S"; break;
-    case CV_16U: r = "16U"; break;
-    case CV_16S: r = "16S"; break;
-    case CV_32S: r = "32S"; break;
-    case CV_32F: r = "32F"; break;
-    case CV_64F: r = "64F"; break;
-    default:     r = "User"; break;
-  }
-
-  r += "C";
-  r += (chans+'0');
-
-  return r;
-}
-
 /*
  * Main function - Kevin Lai
  * KL (April 17, 2017): Function that performs a series of filtering operations on a image loaded from a file.
@@ -78,11 +55,11 @@ string type2str(int type) {
  */
 int main()
 {
-	
 /*		namedWindow("Live Video Feed", 1);	
 	
-		cout << "Showing a live video fee.\n\n";		
+		cout << "Showing a live video feed.\n\n";		
 		VideoCapture input_live(0);*/
+		
 	namedWindow("Video File", 1);	
 	
 	cout << "Showing a  list of files in the working directory.\n\n";
@@ -104,8 +81,7 @@ int main()
 	cin >> file_name;
 	cout << "Showing "<<file_name <<"\n\n";
 
-	VideoCapture input_video(("./videos/" + file_name));
-
+	VideoCapture input_video((file_name));
 
 		Size img_size(500, 500);
 	
@@ -154,11 +130,7 @@ int main()
 			destroyWindow("Video File");
 			break;
 		}
-		// Read image from file and store in Mat img
-		//img = imread(file_name, CV_LOAD_IMAGE_COLOR);
-	
-
-	
+		
 		// ----------- Filtering Operations Start Here ----------------------------
 	
 		// Resizes the image to make it fit the screen
@@ -177,9 +149,7 @@ int main()
 		croppedRef.copyTo(croppedImage);
 		
 		// Splits the image matrix into 3 separate color arrays. 1 for R, 1 for G, and 1 for B.
-		
-split(croppedImage, colors);
-
+		split(croppedImage, colors);
 
 		// Sets up the kernel
 		kernel = Mat::ones(kernel_size, kernel_size, CV_32F)/
@@ -202,6 +172,7 @@ split(croppedImage, colors);
 		
 		thresh = 50;
         	maxValue = 255;
+			
 		// Performs thresholding on the eroded image difference
         	threshold(img_diff_erosion, diff_e_threshold, thresh, maxValue, THRESH_BINARY);
 			

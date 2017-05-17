@@ -14,10 +14,9 @@ using namespace cv;
 using namespace std;
 
 /*
-g++ image_d_e.cpp stack.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o image_d_e
+g++ custom_video_filter_final.cpp stack.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o custom_video_filter_final
 
-
-./image_d_e to run. 
+./custom_video_filter_final to run. 
 */
 
 #define ROWS	500	// number of rows in images
@@ -44,35 +43,9 @@ int threshold_size_h = 50;	// for upper threshold bound
 bool flood_fill_done = false;
 bool flood_filter_done = false;
 
-void printB(int r, int c)
-{
-	int x, y;
-
-        printf("Binary image\n"); 
-
-	for (x=0; x<r; x++) { // for each row in binary image B
-	for (y=0; y<c; y++) {// for each column in binary image B
-        printf(" %4d", zero_crossing_data[x][y]);
-	}
-	printf("\n");
-}
-
-	printf("Colour image\n");
-
-        for (x=0; x<r; x++) {       // for each row in binary image B
-        for (y=0; y<c; y++) {    // for each column in binary image B
-        printf(" %4d", red_array[x][y]);  //red image array  
-        }
-        printf("\n");		
-}
-
-} 
-
-// HL April 22, 2017: floodfill engine from my 8 connected neighbours 
-//     from my paperMill project. Starting below
-  
+//  Floodfill engine with 8 connected neighbours   
 //  The flood fill is updated to allow the size of each individual 
-//  region to be counted for. HL June5, 2015 
+//  region to be counted for.
 //   
 void flood_fill(int r, int c){
     unsigned long itemp, jtemp;
@@ -81,8 +54,7 @@ void flood_fill(int r, int c){
 
     for(i = 0; i < r ; i++){
        for (j = 0; j < c ; j++) {
-          if (zero_crossing_data[i][j] == 255){ // seek seed poit of a cluster  
-            //if(label == 254) label++;  //HL Check this again ???  
+          if (zero_crossing_data[i][j] == 255){ // seek seed poit of a cluster   
             label++;
             push(i,j);
             count++;
@@ -149,69 +121,47 @@ void flood_fill(int r, int c){
                         zero_crossing_data[itemp+1][jtemp+1] = label;
                         flood_size[label] = count; //HL: 2015-6-5 
                     }
-              }
+                }
           count = 0;
-          }
         }
-    //}
+    }
     flood_fill_done = true;
 }
-
-
-//
-// HL: Modify this code to make it for tape inspection, Jun 5, 2015  
-//     
-/*
-bool is_color(int y, int x){
-    if(     image->data[y][(x*3)] > 120     && image->data[y][(x*3)] < 210
-        &&  image->data[y][(x*3)+1] > 25    && image->data[y][(x*3)+1] < 120
-        &&  image->data[y][(x*3)+2] < 50    )   return true;
-    return false;
-}
-*/
-
-// 
-//  Modify this code to make it for tape inspection 
-//  HL: 2015-6-5 
-//
 
 // Filtering: 
 //  1. when the r,g,b colour intensity checked for color vs. colour threshold 
 //  2. when the size of each colour region of the binary image checked for size threhold 
 //     the filtering is applied, e.g., to turn foreground to the background 
- 
 void flood_filter(int r, int c){
     unsigned int topx, topy=0, bottomx, bottomy=1000; 
     unsigned int leftx=1000, lefty, rightx=0, righty;
 
-        //printf("threshold_r %d\n", threshold_r);
-        //printf("threshold_size %d\n", threshold_size);
-
     for(i = 0; i < r ; i++){
        for (j = 0; j < c ; j++) {
-            //if(flood_size[label] > flood_threshold ){
-            //if(red_array[zero_crossing_data[i][j]] > threshold && is_color(i,j)){
-
-            if((red_array[i][j] >= threshold_r)               //keep if (1) red above 
+            if((red_array[i][j] >= threshold_r)               //keep if red above 
                && ( green_array[i][j] >= threshold_g)		  //keep if green above
                && ( blue_array[i][j] >= threshold_b)		  //keep if blue above  
-               && ( flood_size[zero_crossing_data[i][j]] >= threshold_size_l)
-			   && ( flood_size[zero_crossing_data[i][j]] <= threshold_size_h) ) { //and (2) size above  
+               && ( flood_size[zero_crossing_data[i][j]] >= threshold_size_l) //and size above 
+			   && ( flood_size[zero_crossing_data[i][j]] <= threshold_size_h) ) { //and size below 
             }
             else zero_crossing_data[i][j] = 0;
         } // double for loop  
     }
     flood_filter_done = true;
 }
-// HL floodfill engine for 8 connected neighbours ends here 
+// Floodfill engine for 8 connected neighbours ends here 
 
 /*
  * Main function - Kevin Lai
  * KL (April 17, 2017): Function that performs a series of filtering operations on a image loaded from a file.
  * KL (April 20, 2017): Modified previous version to now only load image from file for easy testing. Also integrated flood_fill filtering.
+ * KL (May 7, 2017):    Revised floodfill implementation.
+ * KL (May 12, 2017):   Modified to load and process video files.
  */
 int main()
 {
+		namedWindow("Video File", 1);
+	
 		Size img_size(500, 500);
 	
 		// OpenCV Mat variable that stores the source input image
@@ -245,16 +195,7 @@ int main()
 		Mat colors[3];
 	
 		// OpenCV Mat variable that contains the filtered image matrix after floodfill
-		Mat finalImage(img_size, CV_32F, Scalar(0,0,0));
-	
-		// Parameter passed to floodfill operation.
-		Rect rectRegion;
-		
-		// Point to start floodfill at
-		Point mPoint;
-		
-		// Mode of floodfill operation. Default mode = 4 connected-neighbors.
-		int connected_neighbors_mode = 8;		
+		Mat finalImage(img_size, CV_32F, Scalar(0,0,0));	
 	
 		// Allows user to load image from file
 		cout << "Showing a list of files in the working directory.\n\n";
@@ -264,10 +205,8 @@ int main()
 		DIR *d;
 		struct dirent *dir;
 		d = opendir(".");
-		if (d)
-		{
-			while ((dir = readdir(d)) != NULL)
-			{
+		if (d){
+			while ((dir = readdir(d)) != NULL){
 				printf("%s\n", dir->d_name);
 			}
 			closedir(d);
@@ -278,16 +217,11 @@ int main()
 		
 		VideoCapture input_video((file_name));
 	
-	for(;;)
-	{
-		if(!input_video.read(img))
-		{
+	for(;;){
+		if(!input_video.read(img)){
 			destroyWindow("Video File");
 			break;
 		}
-		
-		// Read image from file and store in Mat img
-		//img = imread(file_name, CV_LOAD_IMAGE_COLOR);
 	
 		// ----------- Filtering Operations Start Here ----------------------------
 	
@@ -296,9 +230,9 @@ int main()
 		
 		// Cropping Region of Interest (ROI)
 		Rect cropROI((int)(img_size.width*0.25),
-			    (int)(img_size.height*0.45),
-			    (int)(img_size.width*(0.75-0.25)),
-			    (int)(img_size.height*(0.8-0.45)));
+					 (int)(img_size.height*0.45),
+					 (int)(img_size.width*(0.75-0.25)),
+					 (int)(img_size.height*(0.8-0.45)));
 		
 		// Creates a reference to the image region, but does not also copy the image data
 		croppedRef = img(cropROI);
@@ -339,7 +273,6 @@ int main()
 		// Loading the floodfill arrays with the image data
 		for (int x = 0; x < diff_e_threshold.rows; x++){
 			for (int y = 0; y < diff_e_threshold.cols; y++){
-				
 				// Loading object array with data
 				if(((int)diff_e_threshold.at<unsigned char>(x,y)*0) != 0){
 					zero_crossing_data[x][y] = 0;
@@ -355,47 +288,36 @@ int main()
 				blue_array[x][y] = abs((int)colors[0].at<unsigned char>(x,y));
 				green_array[x][y] = abs((int)colors[1].at<unsigned char>(x,y));
 				red_array[x][y] = abs((int)colors[2].at<unsigned char>(x,y));
-				
 			}
 		}
 
 		// Setting the thresholds for the floodfill filtering
-		threshold_b = 100;      // for blue
-		threshold_g = 100;      // for green
-		threshold_r = 100;      // for red  
-		threshold_size_l = 10;  // for size 
-		threshold_size_h = 500;	
+		threshold_b = 100;            // for blue
+		threshold_g = 100;            // for green
+		threshold_r = 100;            // for red  
+		threshold_size_l = 2000;      // for lower bound size 
+		threshold_size_h = 5000;      // for upper bound size
 		
 		// Performs floodfill filtering
 		flood_fill(diff_e_threshold.rows, diff_e_threshold.cols);
 		flood_filter(diff_e_threshold.rows, diff_e_threshold.cols);
 		
-		rectRegion = Rect(Point(), finalImage.size());
-		
 		for (int x = 0; x < finalImage.rows; x++){
 			for (int y = 0; y < finalImage.cols; y++){
-				
+				// Fills the filtered pixels with no label
 				if(zero_crossing_data[x][y] == 0){
-					
-					mPoint = Point(x, y);
-					
-					if(rectRegion.contains(mPoint)){
-						// Performs the floodfill filter operation on the cluster.
-						floodFill(finalImage, mPoint, Scalar(0), &rectRegion, Scalar(), Scalar(), connected_neighbors_mode);
-					}
+					finalImage.at<unsigned char>(x,y) = 0;
 				}
-
 			}
 		}
 
-		// Shows both the original cropped image and the filtered image in new windows
-		imshow("Original Cropped Image File", croppedImage);
-		imshow("Filtered Image File", diff_e_threshold);
-		imshow("FloodFill Image File", finalImage);
+		// Shows both the original cropped video and the filtered video in new windows
+		imshow("Original Cropped Video", croppedImage);
+		imshow("Filtered Video", diff_e_threshold);
+		imshow("FloodFill Video", finalImage);
 		imshow("Video File", img);
 			
 		if (waitKey(30) >= 0 )
 			break;	
-
 	}
 }

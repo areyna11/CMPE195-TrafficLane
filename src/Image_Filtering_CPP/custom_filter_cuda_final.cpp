@@ -18,10 +18,9 @@ using namespace std;
 using namespace cv::gpu;
 
 /*
-g++ custom_filter_cuda.cpp stack.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o custom_filter_cuda
+g++ custom_filter_cuda_final.cpp stack.cpp -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_calib3d -lopencv_contrib -lopencv_features2d -lopencv_flann -lopencv_gpu -lopencv_legacy -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching -lopencv_superres -lopencv_video -lopencv_videostab -o custom_filter_cuda_final
 
-
-./custom_filter_cuda to run. 
+./custom_filter_cuda_final to run. 
 */
 
 #define ROWS	500	// number of rows in images
@@ -37,10 +36,10 @@ int flood_size[ROWS*COLUMNS];           //to count area size for filtering
 int label = 0;                          //to colour each region  
 int i,j;    
 
-int threshold_r = 150;       // for red  
+int threshold_r = 150;     // for red  
 int threshold_g = 150;     // for green    
 int threshold_b = 150;     // for blue  
-int threshold_size = 2;      // for size   
+int threshold_size = 2;    // for size   
 
 int threshold_size_l = 10;	// for lower threshold bound
 int threshold_size_h = 50;	// for upper threshold bound
@@ -55,8 +54,7 @@ void flood_fill(int r, int c){
 
     for(i = 0; i < r ; i++){
        for (j = 0; j < c ; j++) {
-          if (zero_crossing_data[i][j] == 255){ // seek seed poit of a cluster  
-            //if(label == 254) label++;  //HL Check this again ???  
+          if (zero_crossing_data[i][j] == 255){ // seek seed poit of a cluster   
             label++;
             push(i,j);
             count++;
@@ -123,11 +121,10 @@ void flood_fill(int r, int c){
                         zero_crossing_data[itemp+1][jtemp+1] = label;
                         flood_size[label] = count; //HL: 2015-6-5 
                     }
-              }
+                }
           count = 0;
-          }
         }
-    //}
+    }
     flood_fill_done = true;
 }
  
@@ -137,12 +134,11 @@ void flood_filter(int r, int c){
 
     for(i = 0; i < r ; i++){
        for (j = 0; j < c ; j++) {
-            
-            if((red_array[i][j] >= threshold_r)               //keep if (1) red above 
+            if((red_array[i][j] >= threshold_r)               //keep if red above 
                && ( green_array[i][j] >= threshold_g)		  //keep if green above
                && ( blue_array[i][j] >= threshold_b)		  //keep if blue above  
-               && ( flood_size[zero_crossing_data[i][j]] >= threshold_size_l)
-			   && ( flood_size[zero_crossing_data[i][j]] <= threshold_size_h) ) { //and (2) size above  
+               && ( flood_size[zero_crossing_data[i][j]] >= threshold_size_l) //and size above 
+			   && ( flood_size[zero_crossing_data[i][j]] <= threshold_size_h) ) { //and size below 
             }
             else zero_crossing_data[i][j] = 0;
         } // double for loop  
@@ -154,9 +150,11 @@ void flood_filter(int r, int c){
 int main()
 {
 	namedWindow("Live Video Feed", 1);	
-	cout << "Showing a live video feed.\n\n";		
+	cout << "Showing a live video feed.\n\n";
 	VideoCapture input_live(0);
-		Size img_size(500, 500);	
+	
+	Size img_size(500, 500);
+	
 	// OpenCV Mat variable that stores the source input image
 	Mat img(img_size, CV_8U, Scalar(0,0,0));
 
@@ -192,15 +190,6 @@ int main()
 	// OpenCV Mat variable that contains the filtered image matrix after floodfill
 	Mat finalImage(img_size, CV_8U, Scalar(0,0,0));
 
-	// Parameter passed to floodfill operation.
-	Rect rectRegion;
-		
-	// Point to start floodfill at
-	Point mPoint;
-		
-	// Mode of floodfill operation. Default mode = 4 connected-neighbors.
-	int connected_neighbors_mode = 8;	
-	
 	// CUDA GpuMat variables used to store uploaded OpenCV Mat variables that will be used in GPU filtering operations
 	//All GPUMats changed to CV_8U, for them to work in the Erode, Dilate GPU functions 
 	GpuMat img_src(img_size, CV_8U), croppedImage_src(img_size, CV_8U) , NewcroppedImage_src(img_size, CV_8U), diff_e_threshold_src(img_size, CV_8U);
@@ -211,22 +200,20 @@ int main()
 	
 	for(;;)
 	{
-	// ----------- Filtering Operations Start Here ----------------------------
-
-		if(!input_live.read(img))
-		{
+		if(!input_live.read(img)){
 			destroyWindow("Live Video Feed");
 			break;
-		}		
+		}
+		
+		// ----------- Filtering Operations Start Here ----------------------------
 
 		// Cropping Region of Interest (ROI)
 		Rect cropROI((int)(img_size.width*0.25),
-			    (int)(img_size.height*0.45),
-			    (int)(img_size.width*(0.75-0.25)),
-			    (int)(img_size.height*(0.8-0.45)));
+					 (int)(img_size.height*0.45),
+					 (int)(img_size.width*(0.75-0.25)),
+					 (int)(img_size.height*(0.8-0.45)));
 
 		// Creates a reference to the image region, but does not also copy the image data
-	
 		croppedRef = img(cropROI);
 
 		// Copies the image data inside the cropping region to a new matrix
@@ -237,11 +224,10 @@ int main()
 		
 		croppedImage_src.upload(croppedImage);
 
-		// Performs Erosion on the image
-
 		//changed the croppedImage_src from a 3 channel (8UC3 to 8UC4, the expected input for the erode/dilate functions)
 		gpu::cvtColor(croppedImage_src, NewcroppedImage_src, CV_BGR2BGRA, 1);
 
+		// Performs Erosion on the image
 		gpu::erode(NewcroppedImage_src, img_erosion_src, kernel, Point(-1,-1), niters);
 
 		// Performs Dilation on the image	
@@ -269,7 +255,6 @@ int main()
 		// Loading the floodfill arrays with the image data
 		for (int x = 0; x < diff_e_threshold.rows; x++){
 			for (int y = 0; y < diff_e_threshold.cols; y++){
-				
 				// Loading object array with data
 				if(((int)diff_e_threshold.at<unsigned char>(x,y)*0) != 0){
 					zero_crossing_data[x][y] = 0;
@@ -283,49 +268,37 @@ int main()
 				
 				// Loading color arrays with image data
 				blue_array[x][y] = abs((int)colors[0].at<unsigned char>(x,y));
-				
 				green_array[x][y] = abs((int)colors[1].at<unsigned char>(x,y));
-				
 				red_array[x][y] = abs((int)colors[2].at<unsigned char>(x,y));
-				
 			}
 		}
 
 		// Setting the thresholds for the floodfill filtering
-		threshold_b = 100;		// for blue
-		threshold_g = 100;		// for green
-		threshold_r = 100;      // for red  
-		threshold_size_l = 10;  // for size 
-		threshold_size_h = 500;	
+		threshold_b = 100;            // for blue
+		threshold_g = 100;            // for green
+		threshold_r = 100;            // for red  
+		threshold_size_l = 2000;      // for lower bound size 
+		threshold_size_h = 5000;      // for upper bound size
 		
 		// Performs floodfill filtering
 		flood_fill(diff_e_threshold.rows, diff_e_threshold.cols);
 		flood_filter(diff_e_threshold.rows, diff_e_threshold.cols);
 		
-		rectRegion = Rect(Point(), finalImage.size());
-		
 		for (int x = 0; x < finalImage.rows; x++){
 			for (int y = 0; y < finalImage.cols; y++){
-				
-				if(zero_crossing_data[x][y] == 0){			
-					
-					mPoint = Point(x, y);
-					
-					if(rectRegion.contains(mPoint)){
-						// Performs the floodfill filter operation on the cluster.
-						floodFill(finalImage, mPoint, Scalar(0), &rectRegion, Scalar(), Scalar(), connected_neighbors_mode);
-					}
+				// Fills the filtered pixels with no label
+				if(zero_crossing_data[x][y] == 0){
+					finalImage.at<unsigned char>(x,y) = 0;
 				}
-
 			}
 		}
 		
-		namedWindow("FloodFill Image File", 1);
+		namedWindow("FloodFill Video Feed", 1);
 
-		// Shows both the original cropped image and the filtered image in new windows
-		imshow("Original Cropped Image File", croppedImage);
-		imshow("Filtered Image File", diff_e_threshold);
-		imshow("FloodFill Image File", finalImage);
+		// Shows both the original cropped video feed and the filtered video feed in new windows
+		imshow("Original Cropped Video Feed", croppedImage);
+		imshow("Filtered Video Feed", diff_e_threshold);
+		imshow("FloodFill Video Feed", finalImage);
 		imshow("Live Video Feed",img);
 				
 		if (waitKey(30) >= 0 )
