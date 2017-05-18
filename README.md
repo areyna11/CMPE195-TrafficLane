@@ -43,13 +43,13 @@ This is the branch in which our final code will be. The code does imaging filter
   	* video\_filter_cuda.cpp is the exact program as above, only that it prompts the user within the console to select a video from the src/videos/ folder. The src/video/ folder contains captured videos of road lanes.
 	* custom\_filter_cuda.cpp is the exact program as live\_filter_cuda.cpp. It uses a custom floodfill implementation. 
 2. Layout
-CMPE195-TrafficLane/src/custom\_filter_cuda.cpp
-CMPE195-TrafficLane/src/live\_filter_cuda.cpp
-CMPE195-TrafficLane/src/video\_filter_cuda.cpp
-CMPE195-TrafficLane/src/videos
-CMPE195-TrafficLane/src/videos/8sec.mp4
-CMPE195-TrafficLane/src/videos/25.mp4
-CMPE195-TrafficLane/src/videos/vid_trim.mp4
+    * CMPE195-TrafficLane/src/custom\_filter_cuda.cpp
+    * CMPE195-TrafficLane/src/live\_filter_cuda.cpp
+    * CMPE195-TrafficLane/src/video\_filter_cuda.cpp
+    * CMPE195-TrafficLane/src/videos
+        * CMPE195-TrafficLane/src/videos/8sec.mp4
+        * CMPE195-TrafficLane/src/videos/25.mp4
+        * CMPE195-TrafficLane/src/videos/vid_trim.mp4
 # Execution:
 1. After the repository has been cloned onto a Jetson compatible platform with OpenCV4Tegra 2.4.13, compile and run the program using the console commands specified within each source code file within the comments.
 2. While running the program, the live video feed will be displayed and the video processing will occur automatically. The result after processing and filtering is also displayed on screen.
